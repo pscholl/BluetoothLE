@@ -1,4 +1,44 @@
-# Change Log
+## 4.2.0 - 2016-07-09
+- Added ability to bond/unbond on Android
+
+## 4.1.0 - 2016-07-09
+- wasConnected helper function
+- Improved subscribe with Android. No longer need to specify whether notification or indication
+- Read, write, subscribe, unsubscribe, readDescriptor, writeDescriptor queueing for Android [\#263](https://github.com/randdusing/BluetoothLE/issues/263), [\#153](https://github.com/randdusing/BluetoothLE/issues/153)
+- Everything now runs on the single WebCore thread with Android. It should prevent issues with race conditions
+- Fix issue with writeDescriptor on Android
+- Fix issue with UUID validation on iOS
+- Fix issue with undefined params obj on startScan on Android.
+
+## 4.0.0 - 2016-03-30
+- Update OS X
+- Fix initializePeripheral issue when not passing parameters on iOS.
+
+## 4.0.0-dev - 2016-03-23
+- OS X support. Central/client role only. Server/peripheral role was killed on newer versions of OS X.
+- Support for server/peripheral role on iOS and partially Android.
+- Background mode support controlled by other plugins.
+- Require Cordova 5+
+- Descriptor now includes permissions when discovering on Android...although descriptors never seem to have permissions set.
+- Fixed bug with descriptor values being typed wrong. Now value can have a type of data, number or string.
+- Fixed bug with write descriptor callback never being returned.
+- Fixed bug which allowed Client Configuration Descriptor to be written, which throws an iOS error.
+- Normalized write without response behavior. iOS now returns a write success immediately after executing the write.
+- Callbacks for discover, services, characteristics, descriptors, rssi, mtu, readDescriptor, writeDescriptor. Basically everything now.
+- Some code cleanup
+
+## 3.3.0 - 2016-03-23
+- Added requestLocation function to help enable location on Android 6.0. Location services must be enabled to scan for unpaired devices. [\#238](https://github.com/randdusing/BluetoothLE/issues/238)
+- Updated readme with walkthrough example - Thanks [normesta](https://github.com/normesta)
+
+## 3.2.0 - 2016-03-21
+- Added writeQ function for faster writes.
+- Updated config.xml to support Windows 10 [\#242](https://github.com/randdusing/cordova-plugin-bluetoothle/pull/242) - Thanks [TimBarham](https://github.com/TimBarham)
+
+## 3.1.0 - 2016-02-23
+- Fixed issue with requestPermission() causing crash when executed on Android versions prior to 6.0.
+- Added ability to check whether location services are enabled or not. Android 6.0 requires location services to be enabled to find unpaired devices.
+- Windows API now compliant with v3.
 
 ## 3.0.1 - 2016-01-26
 - Fixed issue with API21+ code running on earlier API versions and causing the plugin to crash.

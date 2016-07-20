@@ -2,13 +2,14 @@
 This plugin allows you to interact with Bluetooth LE devices on Android, iOS, and partially on Windows.
 
 
-## Available for Hire ##
-I'm available for part time contracting work. This would really help keep the project alive and up to date. You can contact me via: <randdusing@gmail.com>, [Facebook](https://www.facebook.com/randdusing), [LinkedIn](https://www.linkedin.com/in/randdusing) or [Twitter](https://twitter.com/randdusing) for more information.
+## ~~Available for Hire~~ ##
+I'm no longer available for hire at the moment, but I'm still open to questions. You can contact me via: <randdusing@gmail.com>, [Facebook](https://www.facebook.com/randdusing), [LinkedIn](https://www.linkedin.com/in/randdusing) or [Twitter](https://twitter.com/randdusing).
+If you're questions could help others, please post them here as I'd would like to start an FAQ section.
 
 
 ## Requirements ##
 
-* Cordova 3.0.0 or higher
+* Cordova 5.0.0 or higher
 * Android 4.3 or higher, Android Cordova library 5.0.0 or higher, target Android API 23 or higher
 * iOS 7 or higher
 * Windows Phone 8.1 (Tested on Nokia Lumia 630)
@@ -18,9 +19,9 @@ I'm available for part time contracting work. This would really help keep the pr
 
 ## Limitations / Issues ##
 
-* Windows support is limited
-* Disconnecting and quickly reconnecting causes issues on Android. The device becomes connected again, but then quickly disconnects. Adding a timeout before reconnecting fixed the issue for me. I'm not sure if this is a problem with the plugin, Android's Bluetooth LE implementation or Android itself.
-* For subscribing, indication hasn't been tested.
+* Disconnect and quickly reconnecting can cause issues on Android. Add a small timeout.
+* Indication type subscription hasn't been well .
+* OS X is still experimental. I'm experiencing some problems, but may be related to Cordova itself.
 
 
 ## Upgrade 2.x to 3.x ##
@@ -28,55 +29,56 @@ I'm available for part time contracting work. This would really help keep the pr
 * Instead of specifying serviceUuids, serviceUuid, characteristicUuid, etc in the params, use services, service, characteristic, etc. Check out the scan-related, discovery-related and read/write/subscribe operation functions for more info. Discovery related functions will also return uuid properties instead of serviceUuid, characteristicUuid or descriptorUuid.
 * The connecting and disconnecting events were removed.
 
+## Upgrade 3.x to 4.x ##
+
+* Background modes aren't added automatically. See Installation Quirks (iOS) for details.
+
 
 ## To Do ##
 
-* Support for Peripheral/Server role
-* Full support for Windows
-* Resolve all callbacks on disconnected event. Currently it's only partially supported.
+* Expand Windows support
+* Improved notifications on peripheral/server role between Android and iOS
+* Code refactoring. It's getting pretty messy.
 
 
 ## Using AngularJS ##
 
-Check out ng-cordova-bluetoothle [here!](https://github.com/randdusing/ng-cordova-bluetoothle)  
-If timeouts or queueing is needed, please check out the Angular wrapper and its example. I don't plan to implement queuing within the plugin itself anymore.
+Check out ng-cordova-bluetoothle [here!](https://github.com/randdusing/ng-cordova-bluetoothle)
+
+If timeouts are needed, please check out the Angular wrapper and its example.
 
 
 ## Installation ##
 
-Cordova  
+Cordova
+
 ```cordova plugin add cordova-plugin-bluetoothle```
 
-PhoneGap Build  
+PhoneGap Build
+
 ```<gap:plugin name="cordova-plugin-bluetoothle" source="npm" />```
-
-
-## Installation Quirks (iOS) ##
-By default, background mode is enabled. If you wish to remove this, follow the steps below:  
-1. Click your Project  
-2. Click your Target  
-3. Click Capabilities  
-4. Scroll down to Background Modes section, and uncheck Uses Bluetooth LE accessories  
-5. Open up BluetoothLePlugin.m  
-6. Remove "CBCentralManagerOptionRestoreIdentifierKey:pluginName," from the initWithDelegate call in the initialize function  
-7. Remove the willRestoreState function  
-8. Optionally remove 'NSString *const pluginName = @"bluetoothleplugin";' since it's no longer used  
-
-
-Updating the plugin for iOS sometimes causes BluetoothLePlugin.m to be removed from the Compile Sources and CoreBluetooth.framework to be removed from Link Binary with Libraries. To fix:
-1. Click your project to open the "properties" window  
-2. Click your target  
-3. Click Build Phases  
-4. Ensure BluetoothLePlugin.m is added to the Compile Sources  
-5. Ensure CoreBluetooth.framework is added to the Link Binary with Libraries  
 
 
 ## Installation Quirks (Android) ##
 The latest version of the plugin requires you to set the Android target API to a minimum of 23 to support permission requirements for scanning. If you can't target 23, please use plugin version 2.4.0 or below.
 
 
+## Background Modes (iOS) ##
+Background mode(s) are no longer added to your project's plist file by default. They can be added manually by editing the plist file, or you can use the following plugins: [cordova-plugin-background-mode-bluetooth-central](https://github.com/randdusing/cordova-plugin-background-mode-bluetooth-central) and/or [cordova-plugin-background-mode-bluetooth-peripheral](https://github.com/randdusing/cordova-plugin-background-mode-bluetooth-peripheral).
+
+Scanning works differently in the background. There seem to be three different states:
+
+1. Foreground - Service UUID doesn't need to be specified and allowDuplicates isn't ignored.
+2. Background (Screen On) - Service UUID must be specified. allowDuplicates isn't ignored. Scanning is very slow!
+3. Background (Screen Off) - Service UUID must be specified. allowDuplicates is ignored, so a device will only be returned once per scan. One possible work around is to start and stop the scan while in background. Unfortunately, there's a slim chance that the app may fall asleep again in between starting and stopping the scan.
+
+
 ## Discovery Quirks (iOS vs Android) ##
-Discovery works differently between Android and iOS. In Android, a single function is called to initiate discovery of all services, characteristics and descriptors on the device. In iOS, a single function is called to discover the device's services. Then another function to discover the characteristics of a particular service. And then another function to discover the descriptors of a particular characteristic. The [Device plugin](http://docs.phonegap.com/en/edge/cordova_device_device.md.html#Device) should be used to properly determine the device and make the proper calls if necessary. Additionally, if a device is disconnected, it must be rediscovered when running on iOS. **iOS now supports Android style discovery, but use with caution. It's a bit buggy on iOS8, but seems to work fine on iOS9.**
+Discovery works differently between Android and iOS. In Android, a single function is called to initiate discovery of all services, characteristics and descriptors on the device. In iOS, a single function is called to discover the device's services. Then another function to discover the characteristics of a particular service. And then another function to discover the descriptors of a particular characteristic. The [Device plugin](https://github.com/apache/cordova-plugin-device) should be used to properly determine the device and make the proper calls if necessary. Additionally, if a device is disconnected, it must be rediscovered when running on iOS. **iOS now supports Android style discovery, but use with caution. It's a bit buggy on iOS8, but seems to work fine on iOS9.**
+
+
+## Queuing (Android) ##
+Read, write, subscribe, unsubscribe, readDescriptor and writeDescriptor queueing has been added to the master branch and will be part of the 4.1.0 release. If you'd like to try it out, install the plugin directly from GitHub using: ```cordova plugin https://github.com/randdusing/cordova-plugin-bluetoothle```
 
 
 ## UUIDs ##
@@ -92,6 +94,9 @@ Another option is to connect to the device and use the "Device Information" (0x1
 See the following StackOverflow posts for more info: [here](https://stackoverflow.com/questions/18973098/get-mac-address-of-bluetooth-low-energy-peripheral) and [here](https://stackoverflow.com/questions/22833198/get-advertisement-data-for-ble-in-ios)
 
 
+## Data Values ##
+
+
 ## Emulator ##
 Neither Android nor iOS support Bluetooth on emulators, so you'll need to test on a real device.
 
@@ -103,7 +108,9 @@ Neither Android nor iOS support Bluetooth on emulators, so you'll need to test o
 * [bluetoothle.disable] (#disable) (Android)
 * [bluetoothle.startScan] (#startscan)
 * [bluetoothle.stopScan] (#stopscan)
-* [bluetoothle.retrieveConnected] (#retrieveconnected) (iOS)
+* [bluetoothle.retrieveConnected] (#retrieveconnected)
+* [bluetoothle.bond] (#bond)
+* [bluetoothle.unbond] (#unbond)
 * [bluetoothle.connect] (#connect)
 * [bluetoothle.reconnect] (#reconnect)
 * [bluetoothle.disconnect] (#disconnect)
@@ -116,30 +123,49 @@ Neither Android nor iOS support Bluetooth on emulators, so you'll need to test o
 * [bluetoothle.subscribe] (#subscribe)
 * [bluetoothle.unsubscribe] (#unsubscribe)
 * [bluetoothle.write] (#write)
+* [bluetoothle.writeQ] (#write)
 * [bluetoothle.readDescriptor] (#readdescriptor)
 * [bluetoothle.writeDescriptor] (#writedescriptor)
 * [bluetoothle.rssi] (#rssi)
+* [bluetoothle.mtu] (#mtu) (Android 5+)
+* [bluetoothle.requestConnectionPriority] (#requestconnectionpriority) (Android 5+)
 * [bluetoothle.isInitialized] (#isinitialized)
 * [bluetoothle.isEnabled] (#isenabled)
 * [bluetoothle.isScanning] (#isscanning)
+* [bluetoothle.isBonded] (#isbonded)
+* [bluetoothle.wasConnected] (#wasconnected)
 * [bluetoothle.isConnected] (#isconnected)
 * [bluetoothle.isDiscovered] (#isdiscovered)
-* [bluetoothle.hasPermission] (#haspermission) (Android)
-* [bluetoothle.requestPermission] (#requestpermission) (Android)
+* [bluetoothle.hasPermission] (#haspermission) (Android 6+)
+* [bluetoothle.requestPermission] (#requestpermission) (Android 6+)
+* [bluetoothle.isLocationEnabled] (#islocationenabled) (Android 6+)
+* [bluetoothle.requestLocation] (#requestlocation) (Android 6+)
+* [bluetoothle.initializePeripheral] (#initializeperipheral)
+* [bluetoothle.addService] (#addservice)
+* [bluetoothle.removeService] (#removeservice)
+* [bluetoothle.removeAllServices] (#removeallservices)
+* [bluetoothle.startAdvertising] (#startadvertising)
+* [bluetoothle.stopAdvertising] (#stopadvertising)
+* [bluetoothle.respond] (#respond)
+* [bluetoothle.notify] (#notify)
 * [bluetoothle.encodedStringToBytes] (#encodedstringtobytes)
 * [bluetoothle.bytesToEncodedString] (#bytestoencodedstring)
 * [bluetoothle.stringToBytes] (#stringtobytes)
 * [bluetoothle.bytesToString] (#bytestostring)
 
 
+
 ## Errors ##
 
-Whenever the error callback is executed, the return object will contain the error type and a message.  
+Whenever the error callback is executed, the return object will contain the error type and a message.
+
 * initialize - Bluetooth isn't initialized (Try initializing Bluetooth)
 * enable - Bluetooth isn't enabled (Request user to enable Bluetooth)
 * disable - Bluetooth isn't disabled (Can't enabled if already disabled)
 * startScan - Scan couldn't be started (Is the scan already running?)
 * stopScan - Scan couldn't be stopped (Is the scan already stopped?)
+* bond - Bond couldn't be formed (Is it already bonding? Is the device Android?)
+* unbond - Bond couldn' be broken (Is it already unbonding? Is the device Android?)
 * connect - Connection attempt failed (Is the device address correct?)
 * reconnect - Reconnection attempt failed (Was the device ever connected?)
 * discover - Failed to discover device (Is the device already discovered or discovering?)
@@ -162,6 +188,7 @@ Whenever the error callback is executed, the return object will contain the erro
 * isNotDisconnected - Device is not disconnected (Don't call connect or reconnect while connected)
 * isNotConnected - Device isn't connected (Don't call discover or any read/write operations)
 * isDisconnected - Device is disconnected (Don't call disconnect)
+* isBonded - Operation is unsupported. (Is the device Android?)
 
 For example:
 ```javascript
@@ -179,12 +206,12 @@ Characteristics can have the following different permissions: read, readEncrypte
 ## Properties ##
 Characteristics can have the following different properties: broadcast, read, writeWithoutResponse, write, notify, indicate, authenticatedSignedWrites, extendedProperties, notifyEncryptionRequired, indicateEncryptionRequired. If the characteristic has a property, it will exist as a key in the characteristic's properties object. See discovery() or characteristics()
 
-[iOS Docs](https://developer.android.com/reference/android/bluetooth/BluetoothGattCharacteristic.html) and 
-[Android Docs](https://developer.apple.com/library/mac/documentation/CoreBluetooth/Reference/CBCharacteristic_Class/translated_content/CBCharacteristic.html#//apple_ref/c/tdef/CBCharacteristicProperties)
+[Android Docs](https://developer.android.com/reference/android/bluetooth/BluetoothGattCharacteristic.html) and
+[iOS Docs](https://developer.apple.com/library/mac/documentation/CoreBluetooth/Reference/CBCharacteristic_Class/translated_content/CBCharacteristic.html#//apple_ref/c/tdef/CBCharacteristicProperties)
 
 
 
-## Life Cycle ##
+## Central Life Cycle ##
 
 1. initialize
 2. scan (if device address is unknown)
@@ -195,23 +222,24 @@ Characteristics can have the following different properties: broadcast, read, wr
 7. close
 
 
-## Functions ##
 
 ### initialize ###
-Initialize Bluetooth on the device. Must be called before anything else. Callback will continuously be used whenever Bluetooth is enabled or disabled. Note: Although Bluetooth initialization could initially be successful, there's no guarantee whether it will stay enabled. Each call checks whether Bluetooth is disabled. If it becomes disabled, the user must connect to the device, start a read/write operation, etc again. If Bluetooth is disabled, you can request the user to enable it by setting the request property to true. The `request` property in the `params` argument is optional and defaults to false. Also, this function should only be called once.
+Initialize Bluetooth on the device. Must be called before anything else. Callback will continuously be used whenever Bluetooth is enabled or disabled. Note: Although Bluetooth initialization could initially be successful, there's no guarantee whether it will stay enabled. Each call checks whether Bluetooth is disabled. If it becomes disabled, the user must connect to the device, start a read/write operation, etc again. If Bluetooth is disabled, you can request the user to enable it by setting the request property to true. The `request` property in the `params` argument is optional and defaults to false. The `restoreKey` property requires using the Bluetooth Central background mode. This function should only be called once.
 
 ```javascript
-bluetoothle.initialize(initializeSuccess, initializeError, params);
+bluetoothle.initialize(initializeResult, params);
 ```
 
 ##### Params #####
 * request = true / false (default) - Should user be prompted to enable Bluetooth
 * statusReceiver = true (default) / false - Should change in Bluetooth status notifications be sent.
+* restoreKey = A unique string to identify your app. Bluetooth Central background mode is required to use this, but background mode doesn't seem to require specifying the restoreKey.
 
 ```javascript
 {
   "request": true,
-  "statusReceiver": false
+  "statusReceiver": false,
+  "restoreKey" : "bluetoothleplugin"
 }
 ```
 
@@ -260,7 +288,7 @@ The successCallback isn't actually used. Listen to initialize callbacks for chan
 
 
 ### startScan ###
-Scan for Bluetooth LE devices. Since scanning is expensive, stop as soon as possible. The Cordova app should use a timer to limit the scan interval. Also, Android uses an AND operator for filtering, while iOS uses an OR operator. Android API >= 23 requires ACCESS_COARSE_LOCATION permissions to find unpaired devices. Permissions can be requested by using the hasPermission and requestPermission functions.
+Scan for Bluetooth LE devices. Since scanning is expensive, stop as soon as possible. The Cordova app should use a timer to limit the scan interval. Also, Android uses an AND operator for filtering, while iOS uses an OR operator. Android API >= 23 requires ACCESS_COARSE_LOCATION permissions to find unpaired devices. Permissions can be requested by using the hasPermission and requestPermission functions. Android API >= 23 also requires location services to be enabled. Use ```isLocationEnabled``` to determine whether location services are enabled. If not enabled, use ```requestLocation``` to prompt the location services settings page.
 
 ```javascript
 bluetoothle.startScan(startScanSuccess, startScanError, params);
@@ -379,6 +407,78 @@ An array of device objects:
     "address": "ECC037FD-72AE-AFC5-9213-CA785B3B5C63"
   }
 ]
+```
+
+
+
+### bond ###
+Bond with a device. The first success callback should always return with ```status == bonding```. If the bond is created, the callback will return again with ```status == bonded```. If the bonding popup is canceled or the wrong code is entered, the callback will return again with ```status == unbonded```. The device doesn't need to be connected to initiate bonding. Android support only.
+
+```javascript
+bluetoothle.bond(bondSuccess, bondError, params);
+```
+
+##### Params #####
+* address = The address/identifier provided by the scan's return object
+
+```javascript
+{
+  "address": "5A:94:4B:38:B3:FD"
+}
+```
+
+##### Success #####
+* status => bonded = Device is bonded
+* status => bonding = Device is bonding
+* status => unbonded = Device is unbonded
+
+```javascript
+{
+  "name": "Hello World",
+  "address": "5A:94:4B:38:B3:FD",
+  "status": "bonded"
+}
+
+{
+  "name": "Hello World",
+  "address": "5A:94:4B:38:B3:FD",
+  "status": "bonding"
+}
+
+{
+  "name": "Hello World",
+  "address": "5A:94:4B:38:B3:FD",
+  "status": "unbonded"
+}
+```
+
+
+
+### unbond ###
+Unbond with a device. The success callback should always return with ```status == unbonded```. The device doesn't need to be connected to initiate bonding. Android support only.
+
+```javascript
+bluetoothle.unbond(unbondSuccess, unbondError, params);
+```
+
+##### Params #####
+* address = The address/identifier provided by the scan's return object
+
+```javascript
+{
+  "address": "5A:94:4B:38:B3:FD"
+}
+```
+
+##### Success #####
+* status => unbonded = Device is unbonded
+
+```javascript
+{
+  "name": "Hello World",
+  "address": "5A:94:4B:38:B3:FD",
+  "status": "unbonded"
+}
 ```
 
 
@@ -924,7 +1024,7 @@ bluetoothle.read(readSuccess, readError, params);
 ```javascript
 {
   "status": "read",
-  "value": "AQ==",
+  "value": "UmVhZCBIZWxsbyBXb3JsZA==", //Read Hello World
   "characteristic": "2a38",
   "name": "Polar H7 3B321015",
   "service": "180d",
@@ -934,7 +1034,7 @@ bluetoothle.read(readSuccess, readError, params);
 
 
 ### subscribe ###
-Subscribe to a particular service's characteristic. Once a subscription is no longer needed, execute unsubscribe in a similar fashion. The Client Configuration descriptor will automatically be written to enable notification/indication.
+Subscribe to a particular service's characteristic. Once a subscription is no longer needed, execute unsubscribe in a similar fashion. The Client Configuration descriptor will automatically be written to enable notification/indication based on the characteristic's properties.
 
 ```javascript
 bluetoothle.subscribe(subscribeSuccess, subscribeError, params);
@@ -944,14 +1044,12 @@ bluetoothle.subscribe(subscribeSuccess, subscribeError, params);
 * address = The address/identifier provided by the scan's return object
 * service = The service's UUID
 * characteristic = The characteristic's UUID
-* isNotification is only required on Android. True (or null) means notification will be enabled. False means indication will be enabled.
 
 ```javascript
 {
   "address": "ECC037FD-72AE-AFC5-9213-CA785B3B5C63",
   "service": "180d",
   "characteristic": "2a37",
-  "isNotification" : true
 }
 ```
 
@@ -973,7 +1071,7 @@ bluetoothle.subscribe(subscribeSuccess, subscribeError, params);
 
 {
   "status": "subscribedResult",
-  "value": "BkY=",
+  "value": "U3Vic2NyaWJlIEhlbGxvIFdvcmxk", //Subscribe Hello World
   "characteristic": "2a37",
   "name": "Polar H7 3B321015",
   "service": "180d",
@@ -1032,26 +1130,47 @@ bluetoothle.write(writeSuccess, writeError, params);
 * service = The service's UUID
 * characteristic = The characteristic's UUID
 * value = Base64 encoded string
+* type = Set to "noResponse" to enable write without response, all other values will write normally.
 
 Value is a base64 encoded string of bytes to write. Use bluetoothle.bytesToEncodedString(bytes) to convert to base64 encoded string from a unit8Array.
-To write without response, set type to "noResponse". Any other value will default to write with response. Note, no callback will occur on write without response.
+To write without response, set type to "noResponse". Any other value will default to write with response. Note, no callback will occur on write without response on iOS.
 ```javascript
-var string = "Hello World";
+var string = "Write Hello World";
 var bytes = bluetoothle.stringToBytes(string);
-var encodedString = bluetoothle.bytesToEncodedString(encodedString);
+var encodedString = bluetoothle.bytesToEncodedString(bytes);
 
 //Note, this example doesn't actually work since it's read only characteristic
-{"value":encodedString,"service":"180F","characteristic":"2A19","type":"noResponse","address":"ABC123"}
+{"value":"V3JpdGUgSGVsbG8gV29ybGQ=","service":"180F","characteristic":"2A19","type":"noResponse","address":"ABC123"}
 ```
 
 ##### Success #####
 Value is a base64 encoded string of written bytes. Use bluetoothle.encodedStringToBytes(obj.value) to convert to a unit8Array. See characteristic's specification and example below on how to correctly parse this.
 
 ```javascript
-var returnObj = {"status":"written","service":"180F","characteristic":"2A19","value":"SGVsbG8gV29ybGQ=","address":"ABC123"}
+var returnObj = {"status":"written","service":"180F","characteristic":"2A19","value":"V3JpdGUgSGVsbG8gV29ybGQ=","address":"ABC123"}
 var bytes = bluetoothle.encodedStringToBytes(returnObj.value);
-var string = bluetoothle.bytesToString(bytes); //This should equal Hello World!
+var string = bluetoothle.bytesToString(bytes); //This should equal Write Hello World
 ```
+
+
+
+### writeQ ###
+Write Quick / Queue, use this method to quickly execute write without response commands when writing more than 20 bytes at a time. The data will automatically be split up into 20 bytes packets. On iOS, these packets are written immediately since iOS uses queues. You probably won't see much of a performance increase using writeQ. On Android, a queue isn't used internally. Instead another call shouldn't be made until onCharacteristicWrite is called. This could be done at the Javascript layer, but the Javascript to plugin "bridge" must be crossed twice, which leads to some significant slow downs when milliseconds make a difference. For even better write throughput, use requestConnectionPriority('high') as well. Note, no callback will occur on write without response on iOS.
+
+Warnings
+* This is experimental. Test heavily before using in any production code.
+* iOS won't see much performance gain, but Android should.
+* Only supports one call at a time. Don't execute back to back, use on multiple devices, or multiple characteristics.
+
+```javascript
+bluetoothle.writeQ(writeSuccess, writeError, params);
+```
+
+##### Params #####
+See write() above.
+
+##### Success #####
+See write() above.
 
 
 
@@ -1099,7 +1218,7 @@ bluetoothle.read(readDescriptorSuccess, readDescriptorError, params);
 
 
 ### writeDescriptor ###
-Write a particular characteristic's descriptor. Unable to write characteristic configuration directly to keep in line with iOS implementation. Instead use subscribe/unsubscribe, which will automatically enable/disable notification. ***Note, limited testing and likely needs to be made more generic***
+Write a particular characteristic's descriptor. Unable to write characteristic configuration directly to keep in line with iOS implementation. Instead use subscribe/unsubscribe, which will automatically enable/disable notification.
 
 ```javascript
 bluetoothle.writeDescriptor(writeDescriptorSuccess, writeDescriptorError, params);
@@ -1110,23 +1229,24 @@ bluetoothle.writeDescriptor(writeDescriptorSuccess, writeDescriptorError, params
 * service = The service's ID
 * characteristic = The characteristic's ID
 * descriptor = The descriptor's ID
-* value - Base64 encoded string
+* value - Base64 encoded string, number or string.
+* type - Specifies type (data, number or string). Default is base64. (iOS Only, use base64 encoded string for Android)
 
 Value is a base64 encoded string of bytes to write. Use bluetoothle.bytesToEncodedString(bytes) to convert to base64 encoded string from a unit8Array.
 
 ```javascript
 var string = "Hello World";
 var bytes = bluetoothle.stringToBytes(string);
-var encodedString = bluetoothle.bytesToEncodedString(encodedString);
+var encodedString = bluetoothle.bytesToEncodedString(bytes);
 
-{"service":"180D","characteristic":"2A37","descriptor":"2902","value":encodedString,"address":"ABC123"}
+{"service":"180D","characteristic":"2A37","descriptor":"2902","value":"AQAAAAAAAAA=","address":"ABC123"}
 ```
 
 ##### Success #####
 Value is a base64 encoded string of written bytes. Use bluetoothle.encodedStringToBytes(obj.value) to convert to a unit8Array.
 
 ```javascript
-{"status":"writeDescriptor","service":"180D","characteristic":"2A37", "descriptor":"2902","value":"SGVsbG8gV29ybGQ","address":"ABC123"}
+{"status":"writeDescriptor","service":"180D","characteristic":"2A37", "descriptor":"2902","value":"AQAAAAAAAAA=","address":"ABC123"}
 var bytes = bluetoothle.encodedStringToBytes(returnObj.value);
 var string = bluetoothle.bytesToString(bytes); //This should equal Hello World!
 ```
@@ -1196,6 +1316,37 @@ bluetoothle.mtu(mtuSuccess, mtuError, params);
 
 
 
+### requestConnectionPriority ###
+Request a change in the connection priority to improve throughput when transfer large amounts of data via BLE. Android support only. iOS will return error.
+
+```javascript
+bluetoothle.requestConnectionPriority(success, error, params);
+```
+
+#### Params ####
+* address = The address/identifier provided by the scan's return object
+* connectionPriority = low / balanced / high
+
+```javascript
+{
+  "address": "ECC037FD-72AE-AFC5-9213-CA785B3B5C63",
+  "connectionPriority" : "balanced"
+}
+```
+
+##### Success #####
+* status => connectionPriorityRequested = true
+
+```javascript
+{
+  "name": "Polar H7 3B321015",
+  "address": "ECC037FD-72AE-AFC5-9213-CA785B3B5C63",
+  "status" : "connectionPriorityRequested"
+}
+```
+
+
+
 ### isInitialized ###
 Determine whether the adapter is initialized. No error callback. Returns true or false
 
@@ -1249,6 +1400,35 @@ bluetoothle.isScanning(isScanning);
 
 
 
+### wasConnected ###
+Determine whether the device was connected, or error if not initialized.
+
+```javascript
+bluetoothle.wasConnected(wasConnectedSuccess, wasConnectedError, params);
+```
+
+#### Params ####
+* address = The address/identifier provided by the scan's return object
+
+```javascript
+{
+  "address": "ECC037FD-72AE-AFC5-9213-CA785B3B5C63"
+}
+```
+
+##### Success #####
+* status => wasConnected = true/false
+
+```javascript
+{
+  "name": "Polar H7 3B321015",
+  "address": "ECC037FD-72AE-AFC5-9213-CA785B3B5C63",
+  "wasConnected": false
+}
+```
+
+
+
 ### isConnected ###
 Determine whether the device is connected, or error if not initialized or never connected to device.
 
@@ -1279,7 +1459,7 @@ bluetoothle.isConnected(isConnectedSuccess, isConnectedError, params);
 
 
 ### isDiscovered ###
-Determine whether the device's characteristics and descriptors have been discovered, or error if not initialized or never connected to device.
+Determine whether the device's characteristics and descriptors have been discovered, or error if not initialized or not connected to device. Note, on Android, you can connect, discover and then disconnect. isDiscovered will return an error due to the device not being connected. But if you call reconnect and call isDiscovered again, it will return isDiscovered => true since the device stays discovered until calling close().
 
 ```javascript
 bluetoothle.isDiscovered(isDiscoveredSuccess, isDiscoveredError, params);
@@ -1326,10 +1506,10 @@ bluetoothle.hasPermission(hasPermissionSuccess);
 
 
 ### requestPermission ###
-Request coarse location privileges since scanning for unpaired devices requies it in Android API 23.
+Request coarse location privileges since scanning for unpaired devices requires it in Android API 23. Will return an error if called on iOS or Android versions prior to 6.0.
 
 ```javascript
-bluetoothle.requestPermission(requestPermissionSuccess);
+bluetoothle.requestPermission(requestPermissionSuccess, requestPermissionError);
 ```
 
 ##### Success #####
@@ -1343,34 +1523,389 @@ bluetoothle.requestPermission(requestPermissionSuccess);
 
 
 
-### requestConnectionPriority ###
-Request a change in the connection priority to improve throughput when transfer large amounts of data via BLE. Android support only. iOS will return error.
+### isLocationEnabled ###
+Determine if location services are enabled or not. Location Services are required to find devices in Android API 23.
 
 ```javascript
-bluetoothle.requestConnectionPriority(success, error, params);
-```
-
-#### Params ####
-* address = The address/identifier provided by the scan's return object
-* connectionPriority = low / balanced / high
-
-```javascript
-{
-  "address": "ECC037FD-72AE-AFC5-9213-CA785B3B5C63",
-  "connectionPriority" : "balanced"
-}
+bluetoothle.isLocationEnabled(isLocationEnabledSuccess, isLocationEnabledError);
 ```
 
 ##### Success #####
-* status => connectionPriorityRequested = true
+* status => isLocationEnabled = true/false
 
 ```javascript
 {
-  "name": "Polar H7 3B321015",
-  "address": "ECC037FD-72AE-AFC5-9213-CA785B3B5C63",
-  "status" : "connectionPriorityRequested"
+  "isLocationEnabled": true
 }
 ```
+
+
+
+### requestLocation ###
+Prompt location services settings pages. ```requestLocation``` property returns whether location services are enabled or disabled. Location Services are required to find devices in Android API 23.
+
+```javascript
+bluetoothle.requestLocation(requestLocationSuccess, requestLocationError);
+```
+
+##### Success #####
+* status => requestLocation = true/false
+
+```javascript
+{
+  "requestLocation": true
+}
+```
+
+
+
+## Peripheral Life Cycle ##
+
+1. initializePeripheral
+2. addService
+3. startAdvertising
+4. Listen for events on initializePeripheral callback
+5. Respond to events using respond or notify
+6. stopAdvertising
+7. removeService / removeAllServices
+
+
+### Initilization ###
+Initialization works slightly different between Android and iOS. On iOS, you don't need to call intialize() if only acting as a peripheral, just initializePeripheral. On Android, you must always call initialize() before calling initializePeripheral().
+
+
+### Notifications ###
+Notifications work slightly differently between Android and iOS. On Android, you should wait for the ```notificationSent``` event before calling notify() again. On iOS, you need to check the notify() callback for the sent property. If the sent property is set to false, you should wait until receiving the ```peripheralManagerIsReadyToUpdateSubscribers``` event to resend the notification. In future versions, I hope to standardize the functionality between platforms.
+
+
+### Descriptors ###
+iOS doesn't allow you to respond to read and write descriptor requests. Instead it only provides methods for when a client subscribes or unsubscribes. On Android, read and write descriptor requests are provided. If the write descriptor request is made on the Client Configuration Descriptor (used for subscriptions), a subscribe or unsubscribe event will be received instead of writeDescriptorRequested.
+
+
+### initializePeripheral ###
+Initialize Bluetooth on the device. Must be called before anything else. Callback will continuously be used whenever Bluetooth is enabled or disabled. Note: Although Bluetooth initialization could initially be successful, there's no guarantee whether it will stay enabled. Each call checks whether Bluetooth is disabled. If it becomes disabled, the user must readd services, start advertising, etc again. If Bluetooth is disabled, you can request the user to enable it by setting the request property to true. The `request` property in the `params` argument is optional and defaults to false. The `restoreKey` property requires using the Bluetooth Peripheral background mode. This function should only be called once.
+
+Additionally this where new events are delivered for read, write, and subscription requests. See the success section for more details.
+
+```javascript
+bluetoothle.initializePeripheral(success, error, params);
+```
+
+##### Params #####
+* request = true / false (default) - Should user be prompted to enable Bluetooth
+* restoreKey = A unique string to identify your app.  Bluetooth Peripheral background mode is required to use this, but background mode doesn't seem to require specifying the restoreKey.
+
+```javascript
+{
+  "request": true
+  "restoreKey": "bluetoothleplugin"
+}
+```
+
+
+##### Success #####
+* status => enabled = Bluetooth is enabled
+* status => disabled = Bluetooth is disabled
+* status => readRequested = Respond to a read request with respond(). Characteristic (Android/iOS) or Descriptor (Android)
+* status => writeRequested = Respond to a write request with respond(). Characteristic (Android/iOS) or Descriptor (Android)
+* status => subscribed = Subscription started request, use notify() to send new data
+* status => unsubscribed = Subscription ended request, stop sending data
+* status => notificationReady = Resume sending subscription updates (iOS)
+* status => notificationSent = Notification has been sent (Android)
+* status => connected = A device has connected
+* status => disconnected = A device has disconnected
+* status => mtuChanged = MTU has changed for device
+
+###### Enabled/Disabled ######
+```javascript
+{
+  "status": "enabled"
+}
+```
+
+###### readRequested ######
+```javascript
+{
+  "status":"readRequested",
+  "address":"5163F1E0-5341-AF9B-9F67-613E15EC83F7",
+  "service":"1234",
+  "characteristic":"ABCD",
+  requestId":0, //This integer value will be incremented every read/writeRequested
+  "offset":0
+}
+```
+
+###### writeRequested ######
+```javascript
+{
+  "status":"writeRequested",
+  "address":"5163F1E0-5341-AF9B-9F67-613E15EC83F7",
+  "service":"1234",
+  "characteristic":"ABCD",
+  "requestId":1, //This integer value will be incremented every read/writeRequested
+  "value":"V3JpdGUgSGVsbG8gV29ybGQ=", //Write Hello World
+  "offset":0
+}
+```
+
+###### subscribedToCharacteristic ######
+```javascript
+{
+  "status":"subscribedToCharacteristic",
+  "address":"5163F1E0-5341-AF9B-9F67-613E15EC83F7",
+  "service":"1234",
+  "characteristic":"ABCD"
+}
+```
+
+###### unsubscribedToCharacteristic ######
+```javascript
+{
+  "status":"unsubscribedToCharacteristic",
+  "address":"5163F1E0-5341-AF9B-9F67-613E15EC83F7",
+  "service":"1234",
+  "characteristic":"ABCD"
+}
+```
+
+###### peripheralManagerIsReadyToUpdateSubscribers ######
+```javascript
+{
+  "status":"peripheralManagerIsReadyToUpdateSubscribers"
+}
+```
+
+###### connected ######
+```javascript
+{
+  "status":"connected",
+  "address":"5163F1E0-5341-AF9B-9F67-613E15EC83F7",
+}
+```
+
+###### disconnected ######
+```javascript
+{
+  "status":"disconnected",
+  "address":"5163F1E0-5341-AF9B-9F67-613E15EC83F7",
+}
+```
+
+###### mtuChanged ######
+```javascript
+{
+  "status":"mtuChanged",
+  "address":"5163F1E0-5341-AF9B-9F67-613E15EC83F7",
+  "mtu":20,
+}
+```
+
+
+
+### addService ###
+Add a service with characteristics and descriptors. If more than one service is added, add them sequentially.
+
+```javascript
+bluetoothle.addService(success, error, params);
+```
+
+##### Params #####
+* service = A service UUID.
+* characteristics = An object of characteristics data as shown below.
+
+```javascript
+var params = {
+  service: "1234",
+  characteristics: [
+    {
+      uuid: "ABCD",
+      permissions: {
+        read: true,
+        write: true,
+        //readEncryptionRequired: true,
+        //writeEncryptionRequired: true,
+      },
+      properties : {
+        read: true,
+        writeWithoutResponse: true,
+        write: true,
+        notify: true,
+        indicate: true,
+        //authenticatedSignedWrites: true,
+        //notifyEncryptionRequired: true,
+        //indicateEncryptionRequired: true,
+      }
+    }
+  ]
+};
+```
+
+
+##### Return #####
+```javascript
+{
+  "service":"1234",
+  "status":"serviceAdded"
+}
+```
+
+
+### removeService ###
+Remove a service.
+
+```javascript
+bluetoothle.removeService(success, error, params);
+```
+
+##### Params #####
+* service = A service UUID.
+
+```javascript
+var params = {
+  service: "1234",
+};
+```
+
+
+##### Return #####
+```javascript
+{
+  "service":"1234",
+  "status":"serviceRemoved"
+}
+```
+
+
+### removeAllServices ###
+Remove all services
+
+```javascript
+bluetoothle.removeAllServices(success, error);
+```
+
+##### Return #####
+```javascript
+{
+  "status":"allServicesRemoved"
+}
+```
+
+
+### startAdvertising ###
+Start advertising as a BLE device. Note: This needs to be improved so services can be used for both Android and iOS.
+
+```javascript
+bluetoothle.startAdvertising(success, error, params);
+```
+
+##### Params #####
+```javascript
+var params = {
+  "services":["1234"], //iOS
+  "service":"1234", //Android
+  "name":"Hello World",
+};
+```
+
+
+##### Return #####
+```javascript
+{
+  "status":"advertisingStarted"
+}
+```
+
+
+### stopAdvertising ###
+Stop advertising
+
+```javascript
+bluetoothle.stopAdvertising(success, error);
+```
+
+
+##### Return #####
+```javascript
+{
+  "status":"advertisingStopped"
+}
+```
+
+
+### isAdvertising ###
+Determine if app is advertising or not.
+
+```javascript
+bluetoothle.isAdvertising(success, error);
+```
+
+
+##### Return #####
+```javascript
+{
+  "isAdvertising":true
+}
+```
+
+
+
+### respond ###
+Respond to a read or write request
+
+```javascript
+bluetoothle.respond(success, error, params);
+```
+
+##### Params #####
+```javascript
+//This was a read
+var params = {
+  "requestId":0,
+  "value":"UmVhZCBIZWxsbyBXb3JsZA==" //Read Hello World
+};
+```
+
+```javascript
+//This was a write
+var params = {
+  "requestId":1,
+  "value":"V3JpdGUgSGVsbG8gV29ybGQ=" //Write Hello World
+};
+```
+
+##### Return #####
+```javascript
+{
+  "status":"responded"
+}
+```
+
+
+### notify ###
+Update a value for a subscription. Currently all subscribed devices will receive update. Device specific updates will be added in the future. If ```sent``` equals false in the return value, you must wait for the ```peripheralManagerIsReadyToUpdateSubscribers``` event before sending more updates.
+
+```javascript
+bluetoothle.notify(success, error, params);
+```
+
+##### Params #####
+```javascript
+var params = {
+  "service":"1234",
+  "characteristic":"ABCD",
+  "value":"U3Vic2NyaWJlIEhlbGxvIFdvcmxk" //Subscribe Hello World
+};
+```
+
+
+##### Return #####
+```javascript
+{
+  "status":"notified",
+  "sent":true
+}
+```
+
 
 
 ### encodedStringToBytes ###
@@ -1480,6 +2015,585 @@ if (obj.status == "subscribedResult")
   }
 }
 ```
+
+## Sample: Discover and interact with Bluetooth LE devices ##
+
+We'll build an app that lets you discover Bluetooth Low Energy (LE) devices that are around you, connect to a one, and then look at all of the information that you can obtain from that device such as signal strength, supported services, battery level and more.
+
+You could use an app like this to find a lost device or to debug a device that isn't behaving as expected.
+
+Our code performs these tasks.
+
+* Initialize the BluetoothLE adapter.
+* Scan for devices.
+* Connect to a device.
+* Show device services.
+* Show service characteristics.
+
+We'll build this app for Android and Windows devices.
+
+Also, we'll use a **Promise** object for each of the Bluetooth LE functions. If you're unfamiliar with promises, it's just a cleaner way to organize asynchronous functions. You can read more about them [here](https://www.promisejs.org/).
+
+If you're ready to go, let's start.
+
+## Initialize the Bluetooth adapter
+
+The BluetoothLE plugin uses an adapter to interact with each device's Bluetooth LE capability so you'll have to initialize it. To do that, call the [initialize](#initialize) function.
+
+```javascript
+
+document.addEventListener('deviceready', function () {
+
+    new Promise(function (resolve, reject) {
+
+        bluetoothle.initialize(resolve, reject,
+            { request: true, statusReceiver: false });
+
+    }).then(initializeSuccess, handleError);
+
+});
+
+```
+
+If your call succeeds, use ``result.status`` property to find out if Bluetooth is enabled on their device.
+
+```javascript
+
+function initializeSuccess(result) {
+
+    if (result.status === "enabled") {
+
+        log("Bluetooth is enabled.");
+        log(result);
+    }
+
+    else {
+
+        document.getElementById("start-scan").disabled = true;
+
+        log("Bluetooth is not enabled:", "status");
+        log(result, "status");
+    }
+}
+
+```
+
+If your call fails, you can find out why by using the ``error`` object. This code shows one way to do that. We'll re-use this function throughout this example.
+
+```javascript
+
+function handleError(error) {
+
+    var msg;
+
+    if (error.error && error.message) {
+
+        var errorItems = [];
+
+        if (error.service) {
+
+            errorItems.push("service: " + (uuids[error.service] || error.service));
+        }
+
+        if (error.characteristic) {
+
+            errorItems.push("characteristic: " + (uuids[error.characteristic] || error.characteristic));
+        }
+
+        msg = "Error on " + error.error + ": " + error.message + (errorItems.length && (" (" + errorItems.join(", ") + ")"));
+    }
+
+    else {
+
+        msg = error;
+    }
+
+    log(msg, "error");
+
+    if (error.error === "read" && error.service && error.characteristic) {
+
+        reportValue(error.service, error.characteristic, "Error: " + error.message);
+    }
+}
+
+```
+
+The block of code above calls a function named ``log``. It's just a helper function that shows one of many ways to show output to the users.
+
+```javascript
+
+function log(msg, level) {
+
+    level = level || "log";
+
+    if (typeof msg === "object") {
+
+        msg = JSON.stringify(msg, null, "  ");
+    }
+
+    console.log(msg);
+
+    if (level === "status" || level === "error") {
+
+        var msgDiv = document.createElement("div");
+        msgDiv.textContent = msg;
+
+        if (level === "error") {
+
+            msgDiv.style.color = "red";
+        }
+
+        msgDiv.style.padding = "5px 0";
+        msgDiv.style.borderBottom = "rgb(192,192,192) solid 1px";
+        document.getElementById("output").appendChild(msgDiv);
+    }
+}
+
+```
+
+## Scan for devices
+
+Call the [startScan](#startscan) function to find Bluetooth LE devices that are around you. This function succeeds for iOS and Android devices but not for Windows. So why is that?
+
+It turns out that Windows devices detect only those Bluetooth LE devices that are paired to it. For Windows devices, call the [retrieveConnected](#retrieveconnected) function.
+
+```javascript
+
+var foundDevices = [];
+
+function startScan() {
+
+    log("Starting scan for devices...", "status");
+
+    foundDevices = [];
+
+    document.getElementById("devices").innerHTML = "";
+    document.getElementById("services").innerHTML = "";
+    document.getElementById("output").innerHTML = "";
+
+    if (window.cordova.platformId === "windows") {
+
+        bluetoothle.retrieveConnected(retrieveConnectedSuccess, handleError, {});
+    }
+    else {
+
+        bluetoothle.startScan(startScanSuccess, handleError, { services: [] });
+    }
+}
+
+```
+
+Every time that a Bluetooth LE device is detected, the ``startScanSuccess`` callback function is called. In that function, use the ``result`` object to get information about the device.
+
+In this example, we'll add each ``result`` object to an array. We use this array to detect duplicates. We'll compare the MAC address of the current ``result`` to all ``result`` objects in the array before we add it.
+
+After we've determined that the detected device is unique, we'll call a helper function named ``addDevice`` to show that device as a button on the screen. We'll take a look at that function shortly.
+
+```javascript
+
+function startScanSuccess(result) {
+
+    log("startScanSuccess(" + result.status + ")");
+
+    if (result.status === "scanStarted") {
+
+        log("Scanning for devices (will continue to scan until you select a device)...", "status");
+    }
+    else if (result.status === "scanResult") {
+
+        if (!foundDevices.some(function (device) {
+
+            return device.address === result.address;
+
+        })) {
+
+            log('FOUND DEVICE:');
+            log(result);
+            foundDevices.push(result);
+            addDevice(result.name, result.address);
+        }
+    }
+}
+
+```
+
+Remember that Windows devices detect only those Bluetooth LE devices that are paired to it, so we called the [retrieveConnected](#retrieveconnected) function to get paired devices.
+
+If the function succeeds, we get an array of ``result`` objects.
+
+In this example, we iterate through that array and then call a helper function named ``addDevice`` to show that device as a button on the screen.
+
+```javascript
+
+function retrieveConnectedSuccess(result) {
+
+    log("retrieveConnectedSuccess()");
+    log(result);
+
+    result.forEach(function (device) {
+
+        addDevice(device.name, device.address);
+
+    });
+}
+
+```
+
+This helper function adds a button for each available device. The ``click`` event of each button calls a helper function named ``connect``. We'll define that function in the next section.
+
+```javascript
+
+function addDevice(name, address) {
+
+    var button = document.createElement("button");
+    button.style.width = "100%";
+    button.style.padding = "10px";
+    button.style.fontSize = "16px";
+    button.textContent = name + ": " + address;
+
+    button.addEventListener("click", function () {
+
+        document.getElementById("services").innerHTML = "";
+        connect(address);
+    });
+
+    document.getElementById("devices").appendChild(button);
+}
+
+```
+
+## Connect to a device
+
+If the user clicks a button for any of the devices, the ``connect`` helper function is called. In that function, we'll call the [connect](#connect) function of the Bluetooth LE plugin.
+
+If the user has a Windows device, we'll call a helper function named ``getDeviceServices`` to get information about that device's services. We don't have to connect to it first because we know that if it appears in the list, that device is already paired.
+
+```javascript
+
+function connect(address) {
+
+    log('Connecting to device: ' + address + "...", "status");
+
+    if (cordova.platformId === "windows") {
+
+        getDeviceServices(address);
+
+    }
+    else {
+
+        stopScan();
+
+        new Promise(function (resolve, reject) {
+
+            bluetoothle.connect(resolve, reject, { address: address });
+
+        }).then(connectSuccess, handleError);
+
+    }
+}
+
+function stopScan() {
+
+    new Promise(function (resolve, reject) {
+
+        bluetoothle.storpScan(resolve, reject,
+            { address: result.address });
+
+    }).then(stopScanSuccess, handleError);
+}
+
+function stopScanSuccess() {
+
+    if (!foundDevices.length) {
+
+        log("NO DEVICES FOUND");
+    }
+    else {
+
+        log("Found " + foundDevices.length + " devices.", "status");
+    }
+}
+
+```
+
+If the call to the [connect](#connect) function succeeds, use the ``result.status`` property to find out if you've managed to connect.
+
+In this example, if we're connected to the Bluethooth LE device, we'll call a helper function named ``getDeviceServices`` to get information about that device's services
+
+```javascript
+
+function connectSuccess(result) {
+
+    log("- " + result.status);
+
+    if (result.status === "connected") {
+
+        getDeviceServices(result.address);
+    }
+    else if (result.status === "disconnected") {
+
+        log("Disconnected from device: " + result.address, "status");
+    }
+}
+
+```
+
+## Get device services
+
+Now we'll take a look at that helper function named ``getDeviceServices`` that we referred to above. In this method we'll call either the [discover](#discover) function or the [services](#function) depending on the platform of users device.
+
+For Android devices, call the [discover](#discover) function to find the services that are available on the Bluetooth LE device.
+
+For Windows devices, you can use the [services](#services) function to get straight to the services available on the paired device.
+
+
+```javascript
+
+function getDeviceServices(address) {
+
+    log("Getting device services...", "status");
+
+    var platform = window.cordova.platformId;
+
+    if (platform === "android") {
+
+        new Promise(function (resolve, reject) {
+
+            bluetoothle.discover(resolve, reject,
+                { address: address });
+
+        }).then(discoverSuccess, handleError);
+
+    }
+    else if (platform === "windows") {
+
+        new Promise(function (resolve, reject) {
+
+            bluetoothle.services(resolve, reject,
+                { address: address });
+
+        }).then(servicesSuccess, handleError);
+
+    }
+    else {
+
+        log("Unsupported platform: '" + window.cordova.platformId + "'", "error");
+    }
+}
+
+```
+
+### Get services on an Android device
+
+If the call to the [discover](#discover) function succeeds, we'll get an array of services.
+
+In this example, we'll call a helper function named ``addService`` for each service in that array.
+
+That function will show all of the characteristics of the service. We'll look at that function a bit later.
+
+```javascript
+
+function discoverSuccess(result) {
+
+    log("Discover returned with status: " + result.status);
+
+    if (result.status === "discovered") {
+
+    // Create a chain of read promises so we don't try to read a property until we've finished
+        // reading the previous property.
+
+    var readSequence = result.services.reduce(function (sequence, service) {
+
+        return sequence.then(function () {
+
+            return addService(result.address, service.uuid, service.characteristics);
+        });
+
+    }, Promise.resolve());
+
+    // Once we're done reading all the values, disconnect
+    readSequence.then(function () {
+
+        new Promise(function (resolve, reject) {
+
+            bluetoothle.disconnect(resolve, reject,
+                { address: result.address });
+
+        }).then(connectSuccess, handleError);
+
+    });
+
+    }
+}
+
+```
+
+### Get services on a Windows device
+
+If the call to the [services](#services) function succeeds, we'll get an array of services.
+
+we'll call the [Characteristics](#characteristics) function to get all of the characteristics of the service.
+
+```javascript
+
+function servicesSuccess(result) {
+
+    log("servicesSuccess()");
+    log(result);
+
+    if (result.status === "services") {
+
+        var readSequence = result.services.reduce(function (sequence, service) {
+
+            return sequence.then(function () {
+
+                console.log('Executing promise for service: ' + service);
+
+                new Promise(function (resolve, reject) {
+
+                    bluetoothle.characteristics(resolve, reject,
+                        { address: result.address, service: service });
+
+                }).then(characteristicsSuccess, handleError);
+
+            }, handleError);
+
+        }, Promise.resolve());
+
+        // Once we're done reading all the values, disconnect
+        readSequence.then(function () {
+
+            new Promise(function (resolve, reject) {
+
+                bluetoothle.disconnect(resolve, reject,
+                    { address: result.address });
+
+            }).then(connectSuccess, handleError);
+
+        });
+    }
+
+    if (result.status === "services") {
+
+        result.services.forEach(function (service) {
+
+            new Promise(function (resolve, reject) {
+
+                bluetoothle.characteristics(resolve, reject,
+                    { address: result.address, service: service });
+
+            }).then(characteristicsSuccess, handleError);
+
+        });
+
+    }
+}
+
+```
+
+If the call to the [characteristics](#characteristics) function succeeds, we'll call a helper function named ``addService``.
+
+That function will show all of the characteristics of the service. We'll look at that function in the next section.
+
+```javascript
+
+function characteristicsSuccess(result) {
+
+    log("characteristicsSuccess()");
+    log(result);
+
+    if (result.status === "characteristics") {
+
+        return addService(result.address, result.service, result.characteristics);
+    }
+}
+
+
+```
+
+## Show services and characteristics in an app page
+
+The ``addService`` helper method shows the details of each service and their characteristics. To show each characteristic, this function calls the [read](#read) function.
+
+The array of uuid values that is used in this example comes from a helper js file that contains the unique identifiers of all known characteristics. That file does not appear in this example, but the values in it come from this page on the Bluetooth web site: [Characteristics](https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicsHome.aspx?_ga=1.50248486.1214727029.1456966579).
+
+```javascript
+
+function addService(address, serviceUuid, characteristics) {
+
+    log('Adding service ' + serviceUuid + '; characteristics:');
+    log(characteristics);
+
+    var readSequence = Promise.resolve();
+
+    var wrapperDiv = document.createElement("div");
+    wrapperDiv.className = "service-wrapper";
+
+    var serviceDiv = document.createElement("div");
+    serviceDiv.className = "service";
+    serviceDiv.textContent = uuids[serviceUuid] || serviceUuid;
+    wrapperDiv.appendChild(serviceDiv);
+
+    characteristics.forEach(function (characteristic) {
+
+        var characteristicDiv = document.createElement("div");
+        characteristicDiv.className = "characteristic";
+
+        var characteristicNameSpan = document.createElement("span");
+        characteristicNameSpan.textContent = (uuids[characteristic.uuid] || characteristic.uuid) + ":";
+        characteristicDiv.appendChild(characteristicNameSpan);
+
+        characteristicDiv.appendChild(document.createElement("br"));
+
+        var characteristicValueSpan = document.createElement("span");
+        characteristicValueSpan.id = serviceUuid + "." + characteristic.uuid;
+        characteristicValueSpan.style.color = "blue";
+        characteristicDiv.appendChild(characteristicValueSpan);
+
+        wrapperDiv.appendChild(characteristicDiv);
+
+        readSequence = readSequence.then(function () {
+
+            return new Promise(function (resolve, reject) {
+
+                bluetoothle.read(resolve, reject,
+                    { address: address, service: serviceUuid, characteristic: characteristic.uuid });
+
+            }).then(readSuccess, handleError);
+
+        });
+    });
+
+    document.getElementById("services").appendChild(wrapperDiv);
+
+    return readSequence;
+}
+
+```
+
+If the call to the [read](#function) function succeeds, we'll write the value of that characteristic to the app page.
+
+```javascript
+
+function readSuccess(result) {
+
+    log("readSuccess():");
+    log(result);
+
+    if (result.status === "read") {
+
+        reportValue(result.service, result.characteristic, window.atob(result.value));
+    }
+}
+
+function reportValue(serviceUuid, characteristicUuid, value) {
+
+    document.getElementById(serviceUuid + "." + characteristicUuid).textContent = value;
+}
+
+```
+
+That's it! Find the complete sample here: https://github.com/Microsoft/cordova-samples/tree/master/cordova-plugin-bluetoothle.
 
 
 ## More information ##
