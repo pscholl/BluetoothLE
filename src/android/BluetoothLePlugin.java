@@ -44,6 +44,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.Map;
 import java.util.UUID;
 
 import org.json.JSONArray;
@@ -931,6 +932,33 @@ public class BluetoothLePlugin extends CordovaPlugin {
 
     Intent intent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
     cordova.startActivityForResult(this, intent, REQUEST_LOCATION_SOURCE_SETTINGS);
+  }
+
+  private void broadcastError(HashMap<Object,Object> connection, JSONObject obj, String op)
+  {
+    for(Object value: connection.values())
+    {
+      HashMap<String, Object> cbs;
+
+      if (!(value instanceof HashMap))
+        continue;
+
+      cbs = (HashMap<String, Object>) value;
+      for (Map.Entry<String, Object> entry : cbs.entrySet())
+      {
+        CallbackContext cb;
+
+        if (!(entry.getValue() instanceof CallbackContext))
+          continue;
+
+        if (!entry.getKey().equals(op))
+          continue;
+
+        cb = (CallbackContext) entry.getValue();
+        cb.error(obj);
+      }
+    }
+
   }
 
   private void initializeAction(JSONArray args, CallbackContext callbackContext) {
@@ -4295,6 +4323,10 @@ public class BluetoothLePlugin extends CordovaPlugin {
       PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, returnObj);
       pluginResult.setKeepCallback(true);
       initPeripheralCallback.sendPluginResult(pluginResult);
+
+      HashMap<Object, Object> connection = connections.get(device.getAddress());
+      if (connection != null)
+        broadcastError(connection, returnObj, operationSubscribe);
     }
 
     public void onDescriptorReadRequest(BluetoothDevice device, int requestId, int offset, BluetoothGattDescriptor descriptor) {
