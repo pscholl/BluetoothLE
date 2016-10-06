@@ -993,9 +993,9 @@ public class BluetoothLePlugin extends CordovaPlugin {
 
     if (obj != null && getStatusReceiver(obj)) {
       //Add a receiver to pick up when Bluetooth state changes
-      activity.registerReceiver(mReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
-      isReceiverRegistered = true;
     }
+    activity.registerReceiver(mReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
+    isReceiverRegistered = true;
 
     //Get Bluetooth adapter via Bluetooth Manager
     BluetoothManager bluetoothManager = (BluetoothManager) activity.getSystemService(Context.BLUETOOTH_SERVICE);
@@ -2700,21 +2700,60 @@ public class BluetoothLePlugin extends CordovaPlugin {
             addProperty(returnObj, keyStatus, statusDisabled);
             addProperty(returnObj, keyMessage, logNotEnabled);
 
+            /** when the bluetooth stack crashes we want to inform the calls
+             * about it, otherwise they might get stuck. I.e. an incomplete
+             * connect() will never get an error, if the stack dies in between
+             */
+            for (HashMap<Object, Object> connection : connections.values())
+            {
+              CallbackContext cb;
+
+              cb = (CallbackContext) connection.get(operationRead); if (cb != null) cb.error(returnObj);
+              cb = (CallbackContext) connection.get(operationRssi); if (cb != null) cb.error(returnObj);
+              cb = (CallbackContext) connection.get(operationConnect); if (cb != null) cb.error(returnObj);
+              cb = (CallbackContext) connection.get(operationDiscover); if (cb != null) cb.error(returnObj);
+              cb = (CallbackContext) connection.get(operationMtu); if (cb != null) cb.error(returnObj);
+              cb = (CallbackContext) connection.get(operationSubscribe); if (cb != null) cb.error(returnObj);
+              cb = (CallbackContext) connection.get(operationUnsubscribe); if (cb != null) cb.error(returnObj);
+              cb = (CallbackContext) connection.get(operationWrite); if (cb != null) cb.error(returnObj);
+            }
+
             connections = new HashMap<Object, HashMap<Object, Object>>();
             scanCallbackContext = null;
 
             pluginResult = new PluginResult(PluginResult.Status.OK, returnObj);
             pluginResult.setKeepCallback(true);
-            initCallbackContext.sendPluginResult(pluginResult);
+            if (initCallbackContext)
+              initCallbackContext.sendPluginResult(pluginResult);
 
             break;
           case BluetoothAdapter.STATE_ON:
 
             addProperty(returnObj, keyStatus, statusEnabled);
 
+            /** when the bluetooth stack crashes we want to inform the calls
+             * about it, otherwise they might get stuck. I.e. an incomplete
+             * connect() will never get an error, if the stack dies in between
+             */
+            for (HashMap<Object, Object> connection : connections.values())
+            {
+              CallbackContext cb;
+
+              cb = (CallbackContext) connection.get(operationRead); if (cb != null) cb.error(returnObj);
+              cb = (CallbackContext) connection.get(operationRssi); if (cb != null) cb.error(returnObj);
+              cb = (CallbackContext) connection.get(operationConnect); if (cb != null) cb.error(returnObj);
+              cb = (CallbackContext) connection.get(operationDiscover); if (cb != null) cb.error(returnObj);
+              cb = (CallbackContext) connection.get(operationMtu); if (cb != null) cb.error(returnObj);
+              cb = (CallbackContext) connection.get(operationSubscribe); if (cb != null) cb.error(returnObj);
+              cb = (CallbackContext) connection.get(operationUnsubscribe); if (cb != null) cb.error(returnObj);
+              cb = (CallbackContext) connection.get(operationWrite); if (cb != null) cb.error(returnObj);
+            }
+
+
             pluginResult = new PluginResult(PluginResult.Status.OK, returnObj);
             pluginResult.setKeepCallback(true);
-            initCallbackContext.sendPluginResult(pluginResult);
+            if (initCallbackContext)
+              initCallbackContext.sendPluginResult(pluginResult);
 
             break;
         }
